@@ -24,7 +24,7 @@ public class cmd_List implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
             .permission("macro.command.list")
-            .description(Text.of("cmd_List your available macros."))
+            .description(Text.of("List your available macros."))
             .arguments()
             .executor(new cmd_List())
             .build();

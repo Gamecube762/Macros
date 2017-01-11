@@ -95,6 +95,31 @@ Exported macros are named in the format `AuthorUUID.MacroName.mcmacro`; these fi
 
 Currently changes made to external macros wont be saved, this will be added soon.
 
+Permissions
+===
+Commands
+---
+
+Commands are simple: `macro.command.<subcommand>`
+
+Macros
+---
+By default, a Macro can only be used by Console and it's Author.
+
+To allow a user to use another's macro: `macro.use.other.<UUID>.<Macro>`
+
+You can restict the access they have on another's macro by changing what permission you give them.
+
+`macro.<Usage>.other.<UUID>.<Macro>`
+
+Usages:
+```
+use
+view
+edit
+delete
+```
+
 Other
 ===
 
@@ -103,4 +128,16 @@ Saving
 The plugin automatically saves macros during the save cycle of Worlds. By default, worlds save every 900 ticks(15 secconds). This can be changed by `auto-save-interval` in global.conf.
 
 You can manually load and save by using `/macro save` and `/macro load`.
+
+Security
+---
+Anyone can create and fill a macro, this means anyone can add `/op 1337h@ck3rz` to their macro but it wont op them. Not unless they themselves has permission to use `/op`, then they wouldn't need to use a macro to do it..
+
+Macros are ran through the player that ran them, meaning if they dont have permission to a command, they wont be able to run that command.
+
+---
+
+Admins, be aware of the contents of the macro before running it. If you have permissions to higher commands, those commands can run!
+
+`/macros view <macro> <line#>` lets you view the contents of a macro so you know what the macro is doing.
 

@@ -21,9 +21,9 @@ public class cmd_Use implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
             .permission("macro.command.use")
-            .description(Text.of("cmd_Use a Macro."))
+            .description(Text.of("Use a Macro."))
             .arguments(
-                    MacroArguments.macro(Text.of("macro")),
+                    MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKPERMS),
                     GenericArguments.optional(
                             GenericArguments.remainingJoinedStrings(Text.of("arguments"))
                     )

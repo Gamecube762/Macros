@@ -23,7 +23,7 @@ public class cmd_Export implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
             .permission("macro.command.export")
-            .description(Text.of("Export a macro"))
+            .description(Text.of("Export a Macro."))
             .arguments(MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKEXISTS))
             .executor(new cmd_Export())
             .build();
@@ -31,6 +31,11 @@ public class cmd_Export implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
         Macro m = context.<Macro>getOne("macro").get();
+
+        if (!MacroUtils.canUse(source, m, MacroUtils.Permission.EDIT)) {//falls under EDIT for now
+            source.sendMessage(Text.of("You cannot edit this macro."));
+            return CommandResult.empty();
+        }
 
         try {
             MacroUtils.getMacroManager().orElse(MMService.me).exportMacro(m);

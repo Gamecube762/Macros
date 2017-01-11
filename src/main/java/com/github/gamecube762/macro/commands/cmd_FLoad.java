@@ -19,8 +19,8 @@ import java.io.IOException;
 public class cmd_FLoad implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
-            .permission("macro.command.fload")
-            .description(Text.of("Force load macros to config."))
+            .permission("macro.command.load")
+            .description(Text.of("Reload Macros and settings from the config."))
             .executor(new cmd_FLoad())
             .build();
 

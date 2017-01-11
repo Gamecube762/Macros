@@ -17,7 +17,7 @@ import org.spongepowered.api.text.Text;
 public class cmd_SetPublic implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
-            .permission("macro.command.edit")
+            .permission("macro.command.setPublic")
             .description(Text.of("Set a macro to be publicly available."))
             .arguments(
                     MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKEXISTS),
@@ -30,7 +30,12 @@ public class cmd_SetPublic implements CommandExecutor {
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
         Macro m = context.<Macro>getOne("macro").get();
 
-        m.setPublic(context.<Boolean>getOne("text").get());
+        if (!MacroUtils.canUse(source, m, MacroUtils.Permission.EDIT)) {
+            source.sendMessage(Text.of("You cannot edit this macro."));
+            return CommandResult.empty();
+        }
+
+        m.setPublic(context.<Boolean>getOne("bool").get());
         MacroUtils.viewMacro(source, m);
 
         return CommandResult.success();

@@ -1,6 +1,7 @@
 package com.github.gamecube762.macro.commands;
 
 import com.github.gamecube762.macro.util.Macro;
+import com.github.gamecube762.macro.util.MacroUtils;
 import com.github.gamecube762.macro.util.commands.MacroArguments;
 import com.github.gamecube762.macro.util.commands.MacroCommands;
 import org.spongepowered.api.command.CommandException;
@@ -19,8 +20,8 @@ import java.util.stream.Collectors;
 public class cmd_SetAsCommand implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
-            .permission("macro.command.edit")
-            .description(Text.of("Set a macro to be publicly available."))
+            .permission("macro.command.setAsCommand")
+            .description(Text.of("Set a macro to be publicly available as a Command."))
             .arguments(
                     MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKEXISTS)/*,//todo
                     MacroArguments.bool(Text.of("bool"))*/
@@ -31,6 +32,11 @@ public class cmd_SetAsCommand implements CommandExecutor {
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
         Macro m = context.<Macro>getOne("macro").get();
+
+        if (!MacroUtils.canUse(source, m, MacroUtils.Permission.EDIT)) {
+            source.sendMessage(Text.of("You cannot edit this macro."));
+            return CommandResult.empty();
+        }
 
         try {
             MacroCommands.Factory.registerMacroCommand(m);

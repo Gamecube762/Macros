@@ -31,7 +31,7 @@ import java.util.Arrays;
 /**
  * Created by Gamecube762 on 10/5/2016.
  */
-@Plugin(id = "macros", name = "Macros", version = "1.0-alpha-1", authors = {"Gamecube762"}, description = "Create and use macros to simplify your daily needs.")
+@Plugin(id = "macros", name = "Macros", version = "1.0-alpha-2", authors = {"Gamecube762"}, description = "Create and use macros to simplify your daily needs.")
 public class SpongeLoader {
 
     @Inject

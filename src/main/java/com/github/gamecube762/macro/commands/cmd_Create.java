@@ -22,7 +22,7 @@ public class cmd_Create implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
             .permission("macro.command.create")
-            .description(Text.of("Macro creator command."))
+            .description(Text.of("Create a Macro."))
             .arguments(GenericArguments.string(Text.of("name")))
             .executor(new cmd_Create())
             .build();

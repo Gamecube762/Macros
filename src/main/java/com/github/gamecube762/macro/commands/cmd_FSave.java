@@ -19,8 +19,8 @@ import java.io.IOException;
 public class cmd_FSave implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
-            .permission("macro.command.fsave")
-            .description(Text.of("Force save macros to config."))
+            .permission("macro.command.save")
+            .description(Text.of("Save Macros to the config."))
             .executor(new cmd_FSave())
             .build();
 

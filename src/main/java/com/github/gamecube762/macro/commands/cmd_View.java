@@ -19,9 +19,9 @@ public class cmd_View implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
             .permission("macro.command.view")
-            .description(Text.of("cmd_View a macro's actions."))
+            .description(Text.of("View a Macro's actions."))
             .arguments(
-                    MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKPERMS),
+                    MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKEXISTS),
                     GenericArguments.optional(GenericArguments.integer(Text.of("lineNumber")))
 
             )
@@ -30,7 +30,14 @@ public class cmd_View implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
-        MacroUtils.viewMacro(source, context.<Macro>getOne("macro").get(), context.<Integer>getOne("macro").orElse(-1));
+        Macro m = context.<Macro>getOne("macro").get();
+
+        if (!MacroUtils.canUse(source, m, MacroUtils.Permission.VIEW)) {
+            source.sendMessage(Text.of("You cannot view this macro."));
+            return CommandResult.empty();
+        }
+
+        MacroUtils.viewMacro(source, m, context.<Integer>getOne("lineNumber").orElse(-1));
         return CommandResult.success();
     }
 

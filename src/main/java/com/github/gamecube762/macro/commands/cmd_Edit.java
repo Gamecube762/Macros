@@ -22,7 +22,7 @@ public class cmd_Edit implements CommandExecutor {
 
     public static final CommandSpec spec = CommandSpec.builder()
             .permission("macro.command.edit")
-            .description(Text.of("Macro creator command."))
+            .description(Text.of("Edit a Macro."))
             .arguments(
                     MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKEXISTS),
                     GenericArguments.integer(Text.of("line")),//todo custom int or '1,7' (min, max)
@@ -39,6 +39,12 @@ public class cmd_Edit implements CommandExecutor {
         String text = context.<String>getOne("text").orElse("");
 
         Macro m = context.<Macro>getOne("macro").get();
+
+        if (!MacroUtils.canUse(source, m, MacroUtils.Permission.EDIT)) {
+            source.sendMessage(Text.of("You cannot edit this macro."));
+            return CommandResult.empty();
+        }
+
         ArrayList<String> list = m.getActions().stream().collect(Collectors.toCollection(ArrayList::new));
 
         while (line >= list.size())

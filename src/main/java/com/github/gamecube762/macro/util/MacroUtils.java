@@ -276,10 +276,10 @@ public class MacroUtils {
             if (macro.isPublic())
                 builder.append(Text.of(" is Public."));
 
-            builder.append(Text.NEW_LINE, Text.of(TextColors.DARK_PURPLE, "[Start]"));
+            builder.append(Text.NEW_LINE, Text.of(TextColors.DARK_PURPLE,  highlightLine == -1 ? "[Start]" : String.format("[Start - Line: %s]", highlightLine)));
 
             boolean a = false;
-            int i = highlightLine == -1 || highlightLine <= 8 ? 0 : highlightLine - 2 , ii = 0;
+            int i = highlightLine == -1 || highlightLine <= 8 ? 0 : highlightLine - 3 , ii = 0;
             if (i < 0) i = 0;
             while (i < size){
                 if (ii == 8) {
@@ -314,19 +314,18 @@ public class MacroUtils {
     }
 
     public static boolean canUse(CommandSource source, Macro macro) {//todo grab perm for docs
-        return canUse(source, macro, Mode.USE);
+        return canUse(source, macro, Permission.USE);
     }
 
-    public static boolean canUse(CommandSource source, Macro macro, Mode mode) {//todo
+    public static boolean canUse(CommandSource source, Macro macro, Permission mode) {//todo
         return macro.isPublic() ||
                 source instanceof ConsoleSource ||
                 isAuthor(((Player)source).getUniqueId(), macro) ||
                 source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorUniqueId(), macro.getName())) ||
-                source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(),macro.getAuthorName(), macro.getName()));
+                source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorName(), macro.getName()));
     }
 
-    public enum Mode {//todo enum mode
-        //CREATE,
+    public enum Permission {
         DELETE,
         EDIT,
         USE,
