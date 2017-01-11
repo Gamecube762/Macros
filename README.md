@@ -145,5 +145,7 @@ Admins, be aware of the contents of the macro before running it. If you have per
 Useful links:
 ---
 Thread: https://forums.spongepowered.org/t/clipboard-alpha-macros/16761
+
 Releases: https://github.com/Gamecube762/Macros/releases/
+
 IssueTracker: https://github.com/Gamecube762/Macros/issues
