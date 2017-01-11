@@ -141,3 +141,9 @@ Admins, be aware of the contents of the macro before running it. If you have per
 
 `/macros view <macro> <line#>` lets you view the contents of a macro so you know what the macro is doing.
 
+
+Useful links:
+---
+Thread: https://forums.spongepowered.org/t/clipboard-alpha-macros/16761
+Releases: https://github.com/Gamecube762/Macros/releases/
+IssueTracker: https://github.com/Gamecube762/Macros/issues
