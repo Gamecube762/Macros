@@ -103,7 +103,7 @@ public class MacroUtils {
         Matcher matcher = Macro.REGEX_Name.matcher(name);
         while (matcher.find()) i++;
         if (i != 1)
-            throw new IllegalArgumentException("Name must be alphanumeric. cmd_Use _ instead of spaces.");
+            throw new IllegalArgumentException("Name must be alphanumeric. Use _ instead of spaces.");
 
         UUID ownerUUID = author.getUniqueId();
 
@@ -264,7 +264,7 @@ public class MacroUtils {
         if (macro.isEmpty()) {
             builder.append(Text.of(TextColors.GREEN, String.format("%s is empty.", macro.getName())));
             builder.append(Text.NEW_LINE);
-            builder.append(Text.of(TextColors.GREEN, String.format("cmd_Use /macro edit %s <line#> <action>", macro.getName())));
+            builder.append(Text.of(TextColors.GREEN, String.format("Use /macro edit %s <line#> <action>", macro.getName())));
         } else {
             int size = macro.getActions().size();
 

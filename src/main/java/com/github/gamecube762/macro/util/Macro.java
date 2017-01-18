@@ -6,6 +6,7 @@ import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializer;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +28,7 @@ public class Macro {
     private MacroAuthor author;
     private List<String> actions = new ArrayList<>();
     private boolean isPublic = false;
-    private boolean isExternal = false;//todo change to path
+    private Path storagePath = null;
 
     private List<String> args = new ArrayList<>();
     private boolean requiresArgs = false;
@@ -76,7 +77,7 @@ public class Macro {
      * @param isPublic Is the macro available for all?
      */
     public Macro(String name, String description, MacroAuthor author, List<String> actions, boolean isPublic) {
-        this(name, "", author, actions, false, false);
+        this(name, "", author, actions, false, null);
     }
 
     /**
@@ -87,15 +88,15 @@ public class Macro {
      * @param author Macro's Author
      * @param actions Macro's Actions
      * @param isPublic Is the macro available for all?
-     * @param isExternal ---
+     * @param path External file where this Macro is stored
      */
     @Deprecated //isExternal to change
-    public Macro(String name, String description, MacroAuthor author, List<String> actions, boolean isPublic, boolean isExternal) {
+    public Macro(String name, String description, MacroAuthor author, List<String> actions, boolean isPublic, Path path) {
         this.name = name;
         this.description = description;
         this.author = author;
         this.isPublic = isPublic;
-        this.isExternal = isExternal;
+        this.storagePath = path;
         setActions(actions);
     }
 
@@ -224,6 +225,15 @@ public class Macro {
     }
 
     /**
+     * Get the storage path of the macro. Empty unless isExternal() is true.
+     *
+     * @return Optional of the StoragePath
+     */
+    public Optional<Path> getStoragePath() {
+        return storagePath == null ? Optional.empty() : Optional.of(storagePath);
+    }
+
+    /**
      * Is the Macro available for anyone to use?
      *
      * @return boolean
@@ -238,7 +248,7 @@ public class Macro {
      * @return boolean
      */
     public boolean isExternal() {
-        return isExternal;
+        return storagePath != null;
     }
 
     /**
@@ -259,9 +269,12 @@ public class Macro {
         isPublic = aPublic;
     }
 
-    @Deprecated
-    public void setExternal(boolean external) {
-        isExternal = external;
+    /**
+     * Set the external file where this macro is stored
+     * @param path File where macro is stored
+     */
+    public void setStoragePath(Path path) {
+        storagePath = path;
     }
 
     /**
@@ -328,8 +341,7 @@ public class Macro {
 
             m.description = value.getNode("Description").getString();
             m.isPublic = value.getNode("Public").getBoolean();
-            m.isExternal = value.getPath()[0].equals("macro");//storage uses "macros", .mcmacro uses "macro"
-            m.setActions(value.getNode("Actions").getList(Object::toString));
+            m.setActions(value.getNode("Actions").getList(TypeToken.of(String.class)));
 
             return m;
         }

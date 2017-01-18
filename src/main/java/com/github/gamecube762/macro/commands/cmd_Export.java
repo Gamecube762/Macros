@@ -12,6 +12,7 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.io.IOException;
@@ -39,7 +40,11 @@ public class cmd_Export implements CommandExecutor {
 
         try {
             MacroUtils.getMacroManager().orElse(MMService.me).exportMacro(m);
-            source.sendMessage(Text.of(String.format("Exported macro \"%s\" to \\serverRoot\\config\\macros\\custom\\%s.mcmacro", m.getPublicName(), m.getID())));
+            source.sendMessage(
+                    Text.builder(String.format("Exported macro \"%s\" to %s.mcmacro", m.getPublicName(), m.getID()))
+                            .onHover(TextActions.showText(Text.of(String.format("Location: \\serverRoot\\config\\macros\\custom\\%s.mcmacro", m.getID()))))
+                            .build()
+            );
         }
         catch (IOException | ObjectMappingException e) {
             source.sendMessage(

@@ -75,7 +75,8 @@ public class MMService implements MacroManger {
         if (Files.exists(plugin.storageFile)) {
             ConfigurationNode root = plugin.storageLoader.load();
 
-            cmds = root.getNode("commandMacros").getList(Object::toString, cmds);
+            try {cmds = root.getNode("commandMacros").getList(TypeToken.of(String.class));}
+            catch (ObjectMappingException e) {storExc.thrown(e, root.getNode("commandMacros"));}
 
             root.getNode("macros").getChildrenList().forEach(node -> {
                 try {newMacs.add(node.getValue(TypeToken.of(Macro.class)));}
@@ -98,7 +99,9 @@ public class MMService implements MacroManger {
                                 return;
                             }
 
-                        newMacs.add(root.getNode("macro").getValue(TypeToken.of(Macro.class)));
+                        Macro m = root.getNode("macro").getValue(TypeToken.of(Macro.class));
+                        m.setStoragePath(path);
+                        newMacs.add(m);
                     }
                     catch (IOException | ObjectMappingException e) {fileExc.thrown(e, path);}
                 });
@@ -130,7 +133,14 @@ public class MMService implements MacroManger {
 
         ConfigurationNode root = Files.exists(plugin.storageFile) ? plugin.storageLoader.load() : plugin.storageLoader.createEmptyNode();
 
-        try {root.getNode("macros").setValue(Macro.Token_MacroList, storage.stream().filter(o -> !o.isExternal()).collect(Collectors.toCollection(ArrayList::new)));}//we dont save externals yet
+        try {
+            root.getNode("macros").setValue(
+                    Macro.Token_MacroList,
+                    storage.stream()
+                            .filter(o -> !o.isExternal())
+                            .collect(Collectors.toCollection(ArrayList::new))
+            );
+        }
         catch (ObjectMappingException e) {plugin.logger.error(e.getMessage());}
 
         root.getNode("commandMacros")
@@ -141,9 +151,32 @@ public class MMService implements MacroManger {
                                 .collect(Collectors.toList())
                 );
 
-        //todo external saving
+        plugin.storageLoader.save(root);//save storage.conf
 
-        plugin.storageLoader.save(root);
+        MultipleObjectExceptionHandler<Macro> excHandler = new MultipleObjectExceptionHandler<>();
+
+        //save external macros
+        storage.stream().filter(Macro::isExternal).forEach(m -> {
+            try {
+                ConfigurationLoader<CommentedConfigurationNode> loader = HoconConfigurationLoader.builder().setPath(m.getStoragePath().get()).build();
+                ConfigurationNode node = loader.load();
+                node.getNode("macro").setValue(Macro.Token_Macro, m);
+                loader.save(node);
+            }
+            catch (ObjectMappingException | IOException e) {excHandler.thrown(e, m);}
+        });
+
+        if (!excHandler.isEmpty())
+            plugin.logger.error(
+                    excHandler.getMessage(
+                            m -> String.format(
+                                    "%s | %s",
+                                    m.getID(),
+                                    m.getStoragePath().get().getFileSystem().toString()
+                            )
+                    )
+            );//todo format string
+
     }
 
     public void exportMacro(Macro macro) throws IOException, ObjectMappingException {
@@ -158,7 +191,7 @@ public class MMService implements MacroManger {
         ConfigurationNode root = loader.createEmptyNode();
         root.getNode("macro").setValue(Macro.Token_Macro, macro);
         loader.save(root);
-        macro.setExternal(true);
+        macro.setStoragePath(path);
     }
 
     public void importMacro(Path path) {

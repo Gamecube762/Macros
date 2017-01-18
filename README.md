@@ -36,7 +36,7 @@ Arguments:
 ---
 Arguments can be used to make macros more dynamic.
 
-Arguments are formatted as `{#}` or `{#orVALUE}`. With Brackets containg them, a number to define which argument to use and an option `orVALUE` to use if no argument is present.
+Arguments are formatted as `{#}` or `{#orVALUE}`. With Brackets containing them, a number to define which argument to use and an option `orVALUE` to use if no argument is present.
 
 If an argument contains an optional value, you can use `~` when using the macro to use the argument's value.
 
@@ -92,8 +92,6 @@ This folder is for external macros.
 External macros are macros you can export and easily transfer them between servers or for easier manual editing.
 
 Exported macros are named in the format `AuthorUUID.MacroName.mcmacro`; these files can be renamed.
-
-Currently changes made to external macros wont be saved, this will be added soon.
 
 Permissions
 ===

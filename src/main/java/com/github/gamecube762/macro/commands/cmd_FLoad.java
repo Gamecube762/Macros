@@ -26,7 +26,10 @@ public class cmd_FLoad implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
-        try {MacroUtils.getMacroManager().orElse(MMService.me).loadMacros();}
+        try {
+            MacroUtils.getMacroManager().orElse(MMService.me).loadMacros();
+            source.sendMessage(Text.of("Macros Loaded."));
+        }
         catch (IOException e) {
             source.sendMessage(Text.of(TextColors.RED, e.getMessage()));
             return CommandResult.empty();
