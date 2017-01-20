@@ -4,6 +4,7 @@ import com.github.gamecube762.macro.commands.*;
 import com.github.gamecube762.macro.services.MacroManger;
 import com.github.gamecube762.macro.util.Macro;
 import com.github.gamecube762.macro.util.MacroUtils;
+import com.github.gamecube762.macro.util.commands.MacroArguments;
 import com.github.gamecube762.macro.util.commands.MacroCommands;
 import com.google.inject.Inject;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -13,6 +14,7 @@ import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.serialize.TypeSerializers;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
+import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
@@ -120,9 +122,16 @@ public class SpongeLoader {
                 .child(cmd_SetPublic.spec, "setPublic", "sp", "public", "p")
                 .child(cmd_setDescription.spec, "setdescription", "description")
                 .child(cmd_SetAsCommand.spec, "setascommand", "setcommand", "ascommand", "cmd")
+                .child(cmd_QuickMacro.spec, "quick", "quickMacro", "q", "qm")
+                .arguments(
+                        MacroArguments.macro(Text.of("macro"), MacroArguments.MacroCommandElement.Extra.CHECKPERMS),
+                        GenericArguments.optional(GenericArguments.remainingJoinedStrings(Text.of("arguments")))
+                )
+                .executor(cmd_Use.spec.getExecutor())
                 .build();
 
         Sponge.getCommandManager().register(this, macro, "macro", "macros", "m");
+        Sponge.getCommandManager().register(this, cmd_QuickMacro.spec, "quickmacro");
         Sponge.getEventManager().registerListeners(this, new ChatHandler(this));
     }
 

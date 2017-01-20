@@ -125,7 +125,8 @@ public class MacroArguments {
 
         @Override
         public Text getUsage(CommandSource src) {
-            return Text.of("\"{UUID}.MacroName\" or \"UserName.MacroName\" or \"MacroName\" is accepted.");
+            return Text.of("<Macro>");
+            //return Text.of("\"{UUID}.MacroName\" or \"UserName.MacroName\" or \"MacroName\" is accepted.");
         }
 
         public enum Extra {
