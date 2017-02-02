@@ -1,6 +1,7 @@
 package com.github.gamecube762.macro.spongePlugin;
 
 import com.github.gamecube762.macro.util.Macro;
+import com.github.gamecube762.macro.util.MacroRunner;
 import com.github.gamecube762.macro.util.MacroUtils;
 import com.github.gamecube762.macro.util.MultipleObjectExceptionHandler;
 import ninja.leaping.configurate.ConfigurationNode;
@@ -12,19 +13,31 @@ import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
 /**
  * Created by gamec on 1/20/2017.
  */
-public class MacroRunner implements Consumer<Task>  {
+public class Runner implements MacroRunner, Consumer<Task>  {
 
     //todo {User} for placeholder of the user using it.
     //todo {==} for remaining arguments | {=2=} for arguments 2 and after
-    //todo #: = comment | todo document
-    //todo wait: 20 = wait 20ticks before next command
-    //todo wait Action | .c:Wait 20t | [#][format] | ticks, seconds, minutes, hours
+
+
+    //todo commands:
+    //todo .#: = comment | todo document
+    //todo .wait: 20 | # [ticks | seconds | minutes] - def Ticks
+    //todo .cond: {0} == Banana -> .goto: 5 | Statement -> Command
+    //todo .goto: # | set the next line to run
+    //todo .sudo: give {0} Diamond | Run as console - Requires extra perm
+    //todo .logi: [text] | log with the info level - format log<level> - l = info; w = warn; e = error; d = debug
+    //todo .echo: [Message] | print a message to the user
+    //todo .done: [exitMessage] | Finish a macro with an exit message printed to the user - aka .echo:
+
+    //todo Maybe add varibles? .var: pie = good
+
     //todo configOption: custom tickrate
 
     int cmdNext = 0, cmdCount = 0, excCount = 0;
@@ -37,7 +50,7 @@ public class MacroRunner implements Consumer<Task>  {
     List<String> actions, macArgs, inArgs;
     MultipleObjectExceptionHandler<String> excHandler = new MultipleObjectExceptionHandler<>();
 
-    public MacroRunner(SpongeLoader plugin, Macro macro, CommandSource source, List<String> args) {
+    public Runner(SpongeLoader plugin, Macro macro, CommandSource source, List<String> args) {
         this.plugin = plugin;
         this.macro = macro;
         this.source = source;
@@ -71,11 +84,14 @@ public class MacroRunner implements Consumer<Task>  {
                     continue;
                 }
 
-                Matcher m = Macro.REGEX_Arguments.matcher(out);
+                //================================
+                //Find Placeholder Arguments | {0}
+                //================================
+
+                Matcher m = Macro.REGEX_Arg_PlaceHolder.matcher(out);
 
                 while (m.find()) {//find and fill in Arguments
                     String group = m.group();
-                    //if (!out.contains(group)) continue;//Skip Group | Don't recall it being out.contains
                     int num = MacroUtils.getArgKey(group);
                     int size = inArgs.size();
 
@@ -93,10 +109,34 @@ public class MacroRunner implements Consumer<Task>  {
                         out = out.replace(group, MacroUtils.getArgValue(group).orElse(""));
                 }
 
+                //================================
+                //Find Remaining Arguments | {=2=}
+                //================================
+
+                m = Macro.REGEX_Arg_Remaining.matcher(out);
+
+                while (m.find()) {
+                    String group = m.group();
+
+                    StringJoiner a = new StringJoiner(" ");
+                    for (int i = MacroUtils.getArgKey(group); i < inArgs.size(); i++)
+                        a.add(inArgs.get(i));
+
+                    out = out.replace(group, a.toString());
+                }
+
+                //================================
+                //Replace with PlayerName | {User}
+                //================================
+                out = out.replaceAll(Macro.REGEX_Arg_User.pattern(), source.getName());
+
+                //================================
+                //Finally run the command | {User}
+                //================================
+
                 plugin.logger.debug("> " + out);
                 Sponge.getCommandManager().process(source, out);
             }
-
             catch (Exception e) {
                 excCount++;
                 excHandler.thrown(
@@ -104,7 +144,6 @@ public class MacroRunner implements Consumer<Task>  {
                         String.format("Action %s | \'%s\'", cmdNext, actions.get(cmdNext))
                 );
             }
-
             finally {//End of Loop
                 cmdCount++;
                 cmdNext++;
@@ -141,5 +180,64 @@ public class MacroRunner implements Consumer<Task>  {
 
     long tickTime() {
         return System.currentTimeMillis() - lastTime;
+    }
+
+    public int getCurrentLine() {
+        return cmdNext;
+    }
+
+    public int getTickRunCount() {
+        return cmdCount;
+    }
+
+    public int getErrorCount() {
+        return excCount;
+    }
+
+    public int getTickRunLimit() {
+        return maxCMD;
+    }
+
+    public int getMaxTickTime() {
+        return maxTickTime;
+    }
+
+    public int getMaxErrorCount() {
+        return maxErr;
+    }
+
+    public long getTickStartTime() {
+        return lastTime;
+    }
+
+    public SpongeLoader getPlugin() {
+        return plugin;
+    }
+
+    public Macro getMacro() {
+        return macro;
+    }
+
+    public CommandSource getSource() {
+        return source;
+    }
+
+    public List<String> getActions() {
+        return actions;
+    }
+
+    public List<String> getMacArgs() {
+        return macArgs;
+    }
+
+    public List<String> getInArgs() {
+        return inArgs;
+    }
+
+    public MultipleObjectExceptionHandler<String> getExcHandler() {
+        return excHandler;
+    }
+
+    public static void main(String[] args) {
     }
 }

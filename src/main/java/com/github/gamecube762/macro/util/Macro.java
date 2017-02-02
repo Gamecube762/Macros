@@ -17,7 +17,10 @@ import java.util.stream.Collectors;
  */
 public class Macro {
 
-    public static final Pattern REGEX_Arguments = Pattern.compile("\\{\\d+(or[a-zA-Z0-9]*)?\\}");
+    public static final Pattern REGEX_Arguments = Pattern.compile("(\\{\\d+(or[a-zA-Z0-9]*)?})|(\\{=(\\d)?=})|(?i)(\\{user})");
+    public static final Pattern REGEX_Arg_PlaceHolder = Pattern.compile("(\\{\\d+(or[a-zA-Z0-9]*)?})");
+    public static final Pattern REGEX_Arg_Remaining = Pattern.compile("(\\{=(\\d)?=})");
+    public static final Pattern REGEX_Arg_User = Pattern.compile("(?i)(\\{user})");
     public static final Pattern REGEX_ID = Pattern.compile("(([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-zA-Z0-9_]{3,16})\\.[a-zA-Z0-9_]{3,16}|[a-zA-Z0-9_]{3,16})");
     public static final Pattern REGEX_Name = Pattern.compile("[a-zA-Z0-9_]{3,16}");
 
@@ -198,6 +201,16 @@ public class Macro {
      * @param actions List of actions
      */
     public void setActions(List<String> actions) {
+
+        for (int i = 0; i < actions.size(); i++) {//remove whitespace
+            String a = actions.get(i);
+
+            if (!a.startsWith(" ")) continue;
+            while (a.startsWith(" ")) a = a.substring(1);
+
+            actions.set(i, a);
+        }
+
         this.actions = actions;
         this.args = findArgs(actions);
         this.requiredArgCount = 0;

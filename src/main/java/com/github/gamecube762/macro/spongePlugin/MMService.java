@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -254,7 +255,7 @@ public class MMService implements MacroManger {
                             )
             );
 
-        MacroRunner r = new MacroRunner(plugin, macro, source, args);
+        Consumer<Task> r = new Runner(plugin, macro, source, args);
         Task t = Sponge.getScheduler().createTaskBuilder()
                 .name(String.format("MacroRunner:%s:%s.%s", source.getName(), macro.getAuthorName(), source.getName()))
                 .intervalTicks(1)

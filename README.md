@@ -40,6 +40,15 @@ Arguments are formatted as `{#}` or `{#orVALUE}`. With Brackets containing them,
 
 If an argument contains an optional value, you can use `~` when using the macro to use the argument's value.
 
+Advanced Arguments:
+---
+
+You can grab the name of the user using the macro with `{User}`
+
+Using `{=#=}` will use all arguments after `#`. 
+
+Using `{==}` will return all arguments passed by the player. This is good for `say ANNOUNCEMENT: {==}`
+
 Installing
 ===
  * Download the macros.jar
@@ -139,6 +148,22 @@ Admins, be aware of the contents of the macro before running it. If you have per
 
 `/macros view <macro> <line#>` lets you view the contents of a macro so you know what the macro is doing.
 
+
+Planned features
+---
+
+Security checking:
+
+* Checks for attempt at using blacklisted commands(op, ban, whitelist, ext)
+* Checks for infinite loops - Calling the macro within the macro
+
+Macro Actions:
+
+* wait: 20t - waits 20ticks before continueing
+* echo: <message> - Prints a message
+* logi: <message> - Logs to console | logi = info, logw = warn, logd = debug, loge = error
+* sudo: <command> - run a command as console | requires extra permission
+* #: comment
 
 Useful links:
 ---

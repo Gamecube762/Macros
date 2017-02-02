@@ -116,7 +116,7 @@ public class MacroUtils {
         return new Macro(name, author);
     }
 
-    private static final Pattern getArgKey_regex = Pattern.compile("[{}]|or\\w+");
+    private static final Pattern getArgKey_regex = Pattern.compile("[{}=]|or\\w+");
     /**
      * Get the key of a MacroArgument.
      *
@@ -129,6 +129,8 @@ public class MacroUtils {
      * @return Key of the MacroArgument
      */
     public static int getArgKey(String in)  {
+        if (in.equals("{==}")) return 0;
+
         Matcher m = getArgKey_regex.matcher(in);
 
         while (m.find()) in = in.replace(m.group(), "");//Strip all but number
@@ -309,8 +311,9 @@ public class MacroUtils {
         return builder.build();
     }
 
-    public static boolean isAuthor(UUID uuid, Macro macro) {
-        return macro.getAuthorUniqueId() == uuid;
+
+    public static boolean isAuthor(CommandSource source, Macro macro) {
+        return (source instanceof ConsoleSource && MacroAuthor.consoleAuthor == macro.getAuthor()) || ((Player)source).getUniqueId().equals(macro.getAuthorUniqueId());
     }
 
     public static boolean canUse(CommandSource source, Macro macro) {//todo grab perm for docs
@@ -320,7 +323,7 @@ public class MacroUtils {
     public static boolean canUse(CommandSource source, Macro macro, Permission mode) {//todo
         return macro.isPublic() ||
                 source instanceof ConsoleSource ||
-                isAuthor(((Player)source).getUniqueId(), macro) ||
+                isAuthor(source, macro) ||
                 source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorUniqueId(), macro.getName())) ||
                 source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorName(), macro.getName()));
     }
