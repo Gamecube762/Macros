@@ -12,11 +12,21 @@ How to use
 ===
 Creating and editing:
 ---
+
+Macros can be created with `/macro create <macroName>` and edited with `/macro edit <macroName> <lineNumber> <Command to run>`
+
 ```
 /macro create jail
 /macro edit jail 0 tp {0} 100 64 100
 /macro edit jail 1 gamemode 2 {0}
 /macro edit jail 2 tellraw {0} ["",{"text":"You have been sent to Jail!","color":"red","bold":true}]
+```
+
+Alternatively you can use `/quickMacro <macroName> <actions>`. Lines can be seperated by `;`.
+
+The above example can be condensed to this:
+```
+/quickmacro jail tp {0} 100 64 100; gamemode 2 {0}; tellraw {0} ["",{"text":"You have been sent to Jail!","color":"red","bold":true}]
 ```
 
 Using:
@@ -132,7 +142,7 @@ Other
 
 Saving
 ---
-The plugin automatically saves macros during the save cycle of Worlds. By default, worlds save every 900 ticks(15 secconds). This can be changed by `auto-save-interval` in global.conf.
+The plugin automatically saves macros during the save cycle of Worlds. By default, worlds save every 900 ticks(45 seconds). This can be changed by `auto-save-interval` in global.conf.
 
 You can manually load and save by using `/macro save` and `/macro load`.
 
@@ -157,13 +167,18 @@ Security checking:
 * Checks for attempt at using blacklisted commands(op, ban, whitelist, ext)
 * Checks for infinite loops - Calling the macro within the macro
 
-Macro Actions:
+Macro Commands:
 
-* wait: 20t - waits 20ticks before continueing
-* echo: <message> - Prints a message
-* logi: <message> - Logs to console | logi = info, logw = warn, logd = debug, loge = error
-* sudo: <command> - run a command as console | requires extra permission
-* #: comment
+* .wait: \<integer> - waits 20ticks before continueing
+* .echo: \<message> - Prints a message
+* .logi: \<message> - Logs to console | logi = info, logw = warn, logd = debug, loge = error
+* .sudo: \<command> - Run a command as console | requires extra permission
+* .cond: \<boolean> - Compair strings | {0} == Banana -> .goto: 5 -> .done: Not a Banana! -Maybe still thinking on formatting
+* .goto: \<lineNum> - Set the next line to run
+* .done: \<message> - Finish a macro with an exit message printed to the user
+* .#: \<comment>
+
+
 
 Useful links:
 ---
