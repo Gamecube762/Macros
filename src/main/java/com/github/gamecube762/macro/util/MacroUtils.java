@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -116,7 +115,6 @@ public class MacroUtils {
         return new Macro(name, author);
     }
 
-    private static final Pattern getArgKey_regex = Pattern.compile("[{}=]|or\\w+");
     /**
      * Get the key of a MacroArgument.
      *
@@ -128,17 +126,20 @@ public class MacroUtils {
      * @param in MacroArgument
      * @return Key of the MacroArgument
      */
-    public static int getArgKey(String in)  {
-        if (in.equals("{==}")) return 0;
+    public static String getArgKey(String in)  {
+        if (in.equals("{==}")) return "0";
 
-        Matcher m = getArgKey_regex.matcher(in);
+        Matcher m = Macro.REGEX_Arguments.matcher(in);
 
-        while (m.find()) in = in.replace(m.group(), "");//Strip all but number
+        if (m.find()) {
+            if (m.group(1) != null) return m.group(1);
+            if (m.group(4) != null) return m.group(4);
+            if (m.group(5) != null) return m.group(5);
+        }
 
-        return Integer.parseInt(in);//throws IllegalArgumentException
+        throw new IllegalArgumentException("Invalid Argument Placeholder");
     }
 
-    private static final Pattern getArgValue_regex = Pattern.compile("or\\w+");
     /**
      * Get the value of a MacroArgument.
      *
@@ -153,14 +154,8 @@ public class MacroUtils {
      * @throws IllegalArgumentException "Error in Arg formatting."
      */
     public static Optional<String> getArgValue(String in) {
-        Matcher m = getArgValue_regex.matcher(in);
-
-        int a = 0;
-        while (m.find())
-            if (a > 1) throw new IllegalArgumentException("Error in Arg formatting.");
-            else a++;
-
-        return (a == 0) ? Optional.empty() : Optional.of(m.group().substring(2));
+        Matcher m = Macro.REGEX_Arguments.matcher(in);
+        return  (m.find() && m.group(3) != null) ? Optional.of(m.group(3)) : Optional.empty();
     }
 
     /**

@@ -17,11 +17,27 @@ import java.util.stream.Collectors;
  */
 public class Macro {
 
-    public static final Pattern REGEX_Arguments = Pattern.compile("(\\{\\d+(or[a-zA-Z0-9]*)?})|(\\{=(\\d)?=})|(?i)(\\{user})");
-    public static final Pattern REGEX_Arg_PlaceHolder = Pattern.compile("(\\{\\d+(or[a-zA-Z0-9]*)?})");
-    public static final Pattern REGEX_Arg_Remaining = Pattern.compile("(\\{=(\\d)?=})");
-    public static final Pattern REGEX_Arg_User = Pattern.compile("(?i)(\\{user})");
-    public static final Pattern REGEX_ID = Pattern.compile("(([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-zA-Z0-9_]{3,16})\\.[a-zA-Z0-9_]{3,16}|[a-zA-Z0-9_]{3,16})");
+    /**
+     * REGEX_Arguments:
+     *  Used for finding Argument Placeholders
+     *  Groups:
+     *   1: key to Normal Arguments
+     *   2: remainder of Normal Argument "orVALUE"
+     *   3: value to Normal Argument
+     *   4: key to Remainder Argument
+     *   5: key to Special Argument
+     *
+     * REGEX_ID:
+     *  Used for MacroIDs
+     *  Groups:
+     *   1: UUID or Username
+     *   2: Macroname
+     *
+     *  REGEX_Name:
+     *   Used for MacroNames and MCUsernames
+     */
+    public static final Pattern REGEX_Arguments = Pattern.compile("\\{(\\d+)(or([a-zA-Z0-9]*))?}|\\{=(\\d+)?=}|(?i)(\\{(user|userId|macroName|macroID)})");
+    public static final Pattern REGEX_ID = Pattern.compile("([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-zA-Z0-9_]{3,16})\\.([a-zA-Z0-9_]{3,16}|[a-zA-Z0-9_]{3,16})");
     public static final Pattern REGEX_Name = Pattern.compile("[a-zA-Z0-9_]{3,16}");
 
     public static final TypeToken<Macro> Token_Macro = TypeToken.of(Macro.class);

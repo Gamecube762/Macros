@@ -162,12 +162,12 @@ Admins, be aware of the contents of the macro before running it. If you have per
 Planned features
 ---
 
-Security checking:
+### Security checking:
 
 * Checks for attempt at using blacklisted commands(op, ban, whitelist, ext)
 * Checks for infinite loops - Calling the macro within the macro
 
-Macro Commands:
+### Macro Commands:
 
 * .wait: \<integer> - waits 20ticks before continueing
 * .echo: \<message> - Prints a message

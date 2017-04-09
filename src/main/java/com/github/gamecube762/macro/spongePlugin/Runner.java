@@ -1,12 +1,13 @@
 package com.github.gamecube762.macro.spongePlugin;
 
 import com.github.gamecube762.macro.util.Macro;
+import com.github.gamecube762.macro.util.MacroAuthor;
 import com.github.gamecube762.macro.util.MacroRunner;
-import com.github.gamecube762.macro.util.MacroUtils;
 import com.github.gamecube762.macro.util.MultipleObjectExceptionHandler;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
@@ -25,6 +26,7 @@ public class Runner implements MacroRunner, Consumer<Task>  {
     //todo {User} for placeholder of the user using it.
     //todo {==} for remaining arguments | {=2=} for arguments 2 and after
 
+    //todo /use -each 0 One Two three | runs the macro 3 times, one per arg, all args as {0}
 
     //todo commands:
     //todo .#: = comment | todo document
@@ -84,55 +86,48 @@ public class Runner implements MacroRunner, Consumer<Task>  {
                     continue;
                 }
 
-                //================================
-                //Find Placeholder Arguments | {0}
-                //================================
+                //======================================
+                //Find and replace Placeholder Arguments
+                //======================================
 
-                Matcher m = Macro.REGEX_Arg_PlaceHolder.matcher(out);
+                Matcher m = Macro.REGEX_Arguments.matcher(out);
 
                 while (m.find()) {//find and fill in Arguments
-                    String group = m.group();
-                    int num = MacroUtils.getArgKey(group);
-                    int size = inArgs.size();
+                    String arg = m.group();
+                    String replacement = "";
 
-                    if (num < size) {
-                        String arg = inArgs.get(num);
+                    if (m.group(1) != null) {//{#orValue}
+                        int num = Integer.parseInt(m.group(1));
+                        int size = inArgs.size();
+                        String newArg = num >= size ? "" : inArgs.get(num);//todo
+                        replacement = newArg;
 
-                        out = out.replace(
-                                group,
-                                (arg.length() > 3 && arg.equals("~"))
-                                        ? MacroUtils.getArgValue(group).orElse("")
-                                        : arg
-                        );
+                        if (newArg.isEmpty() || newArg.equals("~"))
+                            if (m.group(2) == null)
+                                replacement = m.group(3);
                     }
-                    else if (group.length() > 3)
-                        out = out.replace(group, MacroUtils.getArgValue(group).orElse(""));
+
+                    else if (m.group(4) != null) {//{=#=}
+                        StringJoiner a = new StringJoiner(" ");
+                        for (int i = Integer.parseInt(m.group(4)); i < inArgs.size(); i++)
+                            a.add(inArgs.get(i));
+
+                        replacement = a.toString();
+                    }
+
+                    else if (m.group(5) != null) switch (m.group(5).toLowerCase()) {
+                        case "user": replacement = source.getName(); break;
+                        case "userid": replacement = (source instanceof Player ? ((Player)source).getUniqueId() : MacroAuthor.consoleUUID).toString(); break;
+                        case "macroname": replacement = macro.getName(); break;
+                        case "macroid": replacement = macro.getID(); break;
+                    }
+
+                    out = out.replace(arg, replacement);
                 }
 
-                //================================
-                //Find Remaining Arguments | {=2=}
-                //================================
-
-                m = Macro.REGEX_Arg_Remaining.matcher(out);
-
-                while (m.find()) {
-                    String group = m.group();
-
-                    StringJoiner a = new StringJoiner(" ");
-                    for (int i = MacroUtils.getArgKey(group); i < inArgs.size(); i++)
-                        a.add(inArgs.get(i));
-
-                    out = out.replace(group, a.toString());
-                }
-
-                //================================
-                //Replace with PlayerName | {User}
-                //================================
-                out = out.replaceAll(Macro.REGEX_Arg_User.pattern(), source.getName());
-
-                //================================
-                //Finally run the command | {User}
-                //================================
+                //===============
+                //Run the Command
+                //===============
 
                 plugin.logger.debug("> " + out);
                 Sponge.getCommandManager().process(source, out);
