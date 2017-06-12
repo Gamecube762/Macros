@@ -8,7 +8,7 @@ You are free to test this plugin and make suggestions, [report bugs](https://git
 
 The code is very messy, a lot of it was in a "Get it working" stage.
 
-How to use
+How to use Macros
 ===
 Creating and editing:
 ---
@@ -24,7 +24,7 @@ Macros can be created with `/macro create <macroName>` and edited with `/macro e
 
 Alternatively you can use `/quickMacro <macroName> <actions>`. Lines can be seperated by `;`.
 
-The above example can be condensed to this:
+The above example also can be condensed to this:
 ```
 /quickmacro jail tp {0} 100 64 100; gamemode 2 {0}; tellraw {0} ["",{"text":"You have been sent to Jail!","color":"red","bold":true}]
 ```
@@ -50,24 +50,62 @@ Arguments are formatted as `{#}` or `{#orVALUE}`. With Brackets containing them,
 
 If an argument contains an optional value, you can use `~` when using the macro to use the argument's value.
 
+Advanced Macro Usage
+===
+
 Advanced Arguments:
 ---
-
-You can grab the name of the user using the macro with `{User}`
 
 Using `{=#=}` will use all arguments after `#`. 
 
 Using `{==}` will return all arguments passed by the player. This is good for `say ANNOUNCEMENT: {==}`
 
+Special Arguments:
+---
+
+Special Arguments are arguments that are filled in by the plugin rather than the player. These can provide usefull information without bothering the player to provide them.
+
+Argument | Description
+---|---
+{user}|Get the name of the user using this Macro.
+{userID}|Get the UUID of the user using this Macro.
+{macroName}|Get the name of this Macro.
+{macroID}|Get the ID of this Macro.
+{authorID}|Get this Macro's Author's UUID.
+{authorName}|Get this Macro's Author's username.
+
+Action Commands
+---
+
+Action Commands are special Macro-only commands allowing expanding what Macros can do.
+
+Action commands are formatted differently than normal commands. Current formatting is `.<command>: [Args]` Notice the `.` and `:` before and after the command.
+
+Action Commands are NOT case-sensitive.
+
+Command | Usage | Description
+---|---|---
+\# | .\#: [Message] | Create a comment that is ignored when parsing the Macro.
+Done | .done: [Message] | End the Macro with an optional message
+Echo | .echo: [Message] | Send a message to the user of the macro
+Goto | .goto: \<LineNumber> | Set the next line of the Macro to run
+LogD | .logd: \<Message> | Log a [DEBUG] message to console
+LogE | .loge: \<Message> | Log a [Error] message to console
+LogI | .logi: \<Message> | Log a [Info] message to console
+LogW | .logw: \<Message> | Log a [WARN] message to console
+Perm | .perm: \<PermissionNode> | Run a permission check on the User. Will end macro if check failed.
+Sudo | .sudo: \<Command> | DANGEROUS! Run command as Console. Requires user to have permmision `macro.use.other.sudo.<UUID>.<MacroName>` to use sudo on that macro.
+Wait | .
+
 Installing
 ===
  * Download the macros.jar
- * Put it in your `mods` folder
+ * Place it in your server's `mods` folder
  * Start the server
 
  This plugin can run out-of-the box with no aditional config editing needed.
 
-Config
+Config//todo
 ===
 Currently the config is a work in progress, it may change by the full release.
 
@@ -137,17 +175,9 @@ edit
 delete
 ```
 
-Other
+Server Security
 ===
 
-Saving
----
-The plugin automatically saves macros during the save cycle of Worlds. By default, worlds save every 900 ticks(45 seconds). This can be changed by `auto-save-interval` in global.conf.
-
-You can manually load and save by using `/macro save` and `/macro load`.
-
-Security
----
 Anyone can create and fill a macro, this means anyone can add `/op 1337h@ck3rz` to their macro but it wont op them. Not unless they themselves has permission to use `/op`, then they wouldn't need to use a macro to do it..
 
 Macros are ran through the player that ran them, meaning if they dont have permission to a command, they wont be able to run that command.
@@ -158,27 +188,30 @@ Admins, be aware of the contents of the macro before running it. If you have per
 
 `/macros view <macro> <line#>` lets you view the contents of a macro so you know what the macro is doing.
 
+---
+
+Sudo is a new Macro Action that can run commands as Console. This is usefull for admins and automation but this can be usefull to malicious players in gaining access to the server Console.
+
+To counter act players being able to create Sudo Macros, the Macro User requires `macro.use.other.sudo.<MacroID>` to use sudo for that macro. This helps if a user has access to using Sudo on one macro and not another. This also means an Administrator will need to check the macro before allowing permission to use sudo on it.
+
+Other
+===
+
+Saving
+---
+The plugin automatically saves macros during the save cycle of Worlds. By default, worlds save every 900 ticks(45 seconds). This can be changed by `auto-save-interval` in global.conf.
+
+You can manually load and save by using `/macro save` and `/macro load`.
 
 Planned features
 ---
 
-### Security checking:
+### Security checking - InDev:
 
 * Checks for attempt at using blacklisted commands(op, ban, whitelist, ext)
 * Checks for infinite loops - Calling the macro within the macro
-
-### Macro Commands:
-
-* .wait: \<integer> - waits 20ticks before continueing
-* .echo: \<message> - Prints a message
-* .logi: \<message> - Logs to console | logi = info, logw = warn, logd = debug, loge = error
-* .sudo: \<command> - Run a command as console | requires extra permission
-* .cond: \<boolean> - Compair strings | {0} == Banana -> .goto: 5 -> .done: Not a Banana! -Maybe still thinking on formatting
-* .goto: \<lineNum> - Set the next line to run
-* .done: \<message> - Finish a macro with an exit message printed to the user
-* .#: \<comment>
-
-
+* Warn an admin of malicious macros
+* Require admin's approval above a certain warning level
 
 Useful links:
 ---

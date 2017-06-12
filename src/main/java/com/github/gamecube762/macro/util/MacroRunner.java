@@ -11,11 +11,25 @@ public interface MacroRunner{
 
 
     /**
+     * Get the current line number for macro.getActions()
+     *
+     * @return string
+     */
+    String getCurrentLine();
+
+    /**
      * Get the current line of macro.getActions()
      *
      * @return int
      */
-    int getCurrentLine();
+    int getCurrentLineNumber();
+
+    /**
+     * Set the next line to run
+     *
+     * @param lineNumber lineNumber
+     */
+    void setNextLineNumber(int lineNumber);
 
     /**
      * Get the how many Actions has ran this tick.
@@ -100,5 +114,19 @@ public interface MacroRunner{
      * @return MultipleObjectExceptionHandler
      */
     MultipleObjectExceptionHandler<String> getExcHandler();
+
+    /**
+     * Set how many ticks this runner should wait before continuing.
+     *
+     * @param ticks Ticks to wait
+     */
+    void setWaitingTicks(long ticks);
+
+    /**
+     * Get the remaining ticks for this runner to wait.
+     *
+     * @return Ticks
+     */
+    long getWaitingTicks();
 
 }

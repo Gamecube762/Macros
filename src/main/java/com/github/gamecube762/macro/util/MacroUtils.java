@@ -132,9 +132,9 @@ public class MacroUtils {
         Matcher m = Macro.REGEX_Arguments.matcher(in);
 
         if (m.find()) {
-            if (m.group(1) != null) return m.group(1);
-            if (m.group(4) != null) return m.group(4);
-            if (m.group(5) != null) return m.group(5);
+            if (m.group(2) != null) return m.group(2);
+            if (m.group(4) != null) return m.group(6);
+            if (m.group(8) != null) return m.group(8);
         }
 
         throw new IllegalArgumentException("Invalid Argument Placeholder");
@@ -159,31 +159,19 @@ public class MacroUtils {
     }
 
     /**
-     * Finds the MacroID in the string.
+     * Retrieves the {@link Macro}ID from the provided string.
      *
      * @param in String to search.
-     * @return the MacroID
+     * @return The {@link Macro}ID, including UUID if UUID is present. (UUID.MacroName or MacroName)
      * @throws IllegalArgumentException "Invalid Macro name formatting." | "Invalid UUID string: %s"
      */
     public static String findMacroID(String in) {
-        String group = "", a[];
-
         Matcher m = Macro.REGEX_ID.matcher(in.startsWith("{") ? in.replace("{", "").replace("}", "") : in);
-        int i = 0;
-        while (m.find()) {
-            group = m.group();
-            i++;
-        }
-        if (i != 1)
+
+        if (!m.find())
             throw new IllegalArgumentException("Invalid Macro name formatting.");
 
-        if (group.contains(".")) {
-            a = group.split("\\.");
-            if (a[0].length() > 16)
-                UUID.fromString(a[0]);//throws IllegalArg - "Invalid UUID string: [uuid]"
-        }
-
-        return group;
+        return m.group();
     }
 
     public static final List<String> parseBoolean_trues  = Arrays.asList("true", "t", "yes", "y", "yay", "on", "1");
@@ -316,11 +304,11 @@ public class MacroUtils {
     }
 
     public static boolean canUse(CommandSource source, Macro macro, Permission mode) {//todo
-        return macro.isPublic() ||
-                source instanceof ConsoleSource ||
+        return source instanceof ConsoleSource ||
+                macro.isPublic() ||
                 isAuthor(source, macro) ||
-                source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorUniqueId(), macro.getName())) ||
-                source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorName(), macro.getName()));
+                source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorUniqueId(), macro.getName().toLowerCase())) ||
+                source.hasPermission(String.format("macro.%s.other.%s.%s", mode.toString().toLowerCase(), macro.getAuthorName(), macro.getName().toLowerCase()));
     }
 
     public enum Permission {

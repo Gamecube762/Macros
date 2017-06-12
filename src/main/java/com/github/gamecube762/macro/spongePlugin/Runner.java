@@ -1,9 +1,7 @@
 package com.github.gamecube762.macro.spongePlugin;
 
-import com.github.gamecube762.macro.util.Macro;
-import com.github.gamecube762.macro.util.MacroAuthor;
-import com.github.gamecube762.macro.util.MacroRunner;
-import com.github.gamecube762.macro.util.MultipleObjectExceptionHandler;
+import com.github.gamecube762.macro.util.*;
+import com.github.gamecube762.macro.util.actionCommands.ActionCommandException;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
@@ -13,6 +11,7 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
@@ -23,28 +22,26 @@ import java.util.regex.Matcher;
  */
 public class Runner implements MacroRunner, Consumer<Task>  {
 
-    //todo {User} for placeholder of the user using it.
-    //todo {==} for remaining arguments | {=2=} for arguments 2 and after
-
     //todo /use -each 0 One Two three | runs the macro 3 times, one per arg, all args as {0}
 
-    //todo commands:
-    //todo .#: = comment | todo document
-    //todo .wait: 20 | # [ticks | seconds | minutes] - def Ticks
-    //todo .cond: {0} == Banana -> .goto: 5 | Statement -> Command
-    //todo .goto: # | set the next line to run
-    //todo .sudo: give {0} Diamond | Run as console - Requires extra perm
-    //todo .logi: [text] | log with the info level - format log<level> - l = info; w = warn; e = error; d = debug
-    //todo .echo: [Message] | print a message to the user
-    //todo .done: [exitMessage] | Finish a macro with an exit message printed to the user - aka .echo:
+    //todo Document:
+    //.#: = comment |
+    //.wait: 20 | # [ticks | seconds | minutes] - def Ticks
+    //.goto: # | set the next line to run
+    //.sudo: give {0} Diamond | Run as console - Requires extra perm
+    //.logi: [text] | log with the info level - format log<level> - l = info; w = warn; e = error; d = debug
+    //.echo: [Message] | print a message to the user
+    //.done: [exitMessage] | Finish a macro with an exit message printed to the user - aka .echo:
 
-    //todo Maybe add varibles? .var: pie = good
+    //todo commands:
+    //todo .cond: {0} == Banana -> .goto: 5 | Statement -> Command
+    //todo Maybe add varibles? .var: pie = good | .var: a = 1 | .var: a += 2
 
     //todo configOption: custom tickrate
 
-    int cmdNext = 0, cmdCount = 0, excCount = 0;
+    int cmdNext = 0, cmdCount = 0, errCount = 0;
     int maxCMD, maxTickTime, maxErr;
-    long lastTime = 0;
+    long lastTime = 0, waitingTicks = 0;
 
     SpongeLoader plugin;
     Macro macro;
@@ -70,76 +67,121 @@ public class Runner implements MacroRunner, Consumer<Task>  {
         lastTime = System.currentTimeMillis();
         cmdCount = 0;
 
-        /**
-         * accept(task)             | Ran once per tick; while loop runs ~5 commands per tick
+        if (waitingTicks < 0) {
+            waitingTicks--;
+            return;
+        }
+
+        /* accept(task)             | Ran once per tick; while loop runs ~5 commands per tick
          * cmdCount < 5             | Max commands to run per tick
          * cmdNext < actions.size() | Did we complete all the tasks?
          * tickTime() < 5           | Wait for next tick if this tick has taken longer than 5ms
-         * excCount < 10            | Max errors before canceling
+         * errCount < 10            | Max errors before canceling
          */
-        while (cmdCount < maxCMD && cmdNext < actions.size() && tickTime() < maxTickTime && excCount < maxCMD)
+        while (cmdCount < maxCMD && cmdNext < actions.size() && tickTime() < maxTickTime && errCount < maxCMD)
             try {
                 String out = actions.get(cmdNext);
 
-                if (out == null || out.isEmpty() || out.startsWith("#:")) {
+                if (out == null || out.isEmpty() || out.startsWith(".#:") || out.startsWith(".:")) {
                     cmdCount--;//prevents going through a tick and not running any commands
                     continue;
                 }
+
 
                 //======================================
                 //Find and replace Placeholder Arguments
                 //======================================
 
                 Matcher m = Macro.REGEX_Arguments.matcher(out);
-
                 while (m.find()) {//find and fill in Arguments
                     String arg = m.group();
-                    String replacement = "";
+                    String replacement = arg;
 
                     if (m.group(1) != null) {//{#orValue}
-                        int num = Integer.parseInt(m.group(1));
+                        int key = Integer.parseInt(m.group(2));
                         int size = inArgs.size();
-                        String newArg = num >= size ? "" : inArgs.get(num);//todo
+                        String newArg = key >= size ? "" : inArgs.get(key);//todo
                         replacement = newArg;
 
                         if (newArg.isEmpty() || newArg.equals("~"))
-                            if (m.group(2) == null)
-                                replacement = m.group(3);
+                            if (m.group(3) == null)
+                                replacement = m.group(4);
                     }
 
-                    else if (m.group(4) != null) {//{=#=}
+                    else if (m.group(5) != null) {//{=#=}
                         StringJoiner a = new StringJoiner(" ");
-                        for (int i = Integer.parseInt(m.group(4)); i < inArgs.size(); i++)
+                        String key = m.group(6);
+
+                        for (int i = (key == null) ? 0 : Integer.parseInt(key); i < inArgs.size(); i++)
                             a.add(inArgs.get(i));
 
                         replacement = a.toString();
                     }
 
-                    else if (m.group(5) != null) switch (m.group(5).toLowerCase()) {
-                        case "user": replacement = source.getName(); break;
-                        case "userid": replacement = (source instanceof Player ? ((Player)source).getUniqueId() : MacroAuthor.consoleUUID).toString(); break;
-                        case "macroname": replacement = macro.getName(); break;
-                        case "macroid": replacement = macro.getID(); break;
+                    else if (m.group(7) != null) switch (m.group(8).toLowerCase()) {//todo Replace with Map<String, Function>
+                        case "user":        replacement = source.getName(); break;
+                        case "userid":      replacement = (source instanceof Player ? ((Player)source).getUniqueId() : MacroAuthor.consoleUUID).toString(); break;
+                        case "macroname":   replacement = macro.getName(); break;
+                        case "macroid":     replacement = macro.getID(); break;
+                        case "authorname":  replacement = macro.getAuthorName(); break;
+                        case "authorid":    replacement = macro.getAuthorUniqueId().toString(); break;
+                        default: break; //Do nothing
                     }
 
                     out = out.replace(arg, replacement);
+                }//end While() - Arg Replacement
+
+                //===============
+                //Run the command
+                //===============
+
+                //ActionCommand
+                String[] a = out.split(" ");
+                String cmd = a[0].substring( 1, a[0].length() - 1 );
+                if (Macro.REGEX_ActionCommand.matcher(a[0]).matches())
+                    MacroUtils.getMacroManager().orElse(MMService.me)//todo check user's perm
+                            .getActionCommand(cmd)
+                            .orElseThrow(() -> new ActionCommandException("Unknown ActionCommand: " + cmd))//Throw EXC if empty
+                            .parse(source, Arrays.asList(Arrays.copyOfRange(a, 1, a.length)), this);//If not empty; trim array for args only and run AC
+
+                //SpongeCommand
+                else {
+                    plugin.logger.debug("> " + out);
+                    Sponge.getCommandManager().process(source, out);
                 }
+            }
+            catch (ActionCommandException e) {
+                source.sendMessage(Text.of(e.getMessage()));
 
-                //===============
-                //Run the Command
-                //===============
+                if (e.shouldEndMacro()) {
+                    String err =
+                            String.format(
+                                    "Macro %s(Used by %s) was Canceled due to an ActionCommandException\nExc: %s\nMsg:%s",
+                                    macro.getPublicName(),
+                                    source.getName(),
+                                    e.getClass().getSimpleName(),
+                                    e.getMessage()
+                            );
 
-                plugin.logger.debug("> " + out);
-                Sponge.getCommandManager().process(source, out);
+                    source.sendMessage(
+                            Text.builder("Macro was canceled due to an ActionCommandException: " + e.getMessage())
+                                    .onHover(TextActions.showText(Text.of(TextColors.RED, err)))
+                                    .build()
+                    );
+
+                    plugin.logger.warn(err);
+                    task.cancel();
+                    return;
+                }
             }
             catch (Exception e) {
-                excCount++;
+                errCount++;
                 excHandler.thrown(
                         e,
                         String.format("Action %s | \'%s\'", cmdNext, actions.get(cmdNext))
                 );
             }
-            finally {//End of Loop
+            finally/*its the end of the loop!*/{
                 cmdCount++;
                 cmdNext++;
             }
@@ -149,7 +191,7 @@ public class Runner implements MacroRunner, Consumer<Task>  {
         //  Is the macro complete?
         //==============
 
-        if (excCount >= maxErr) {//Error count maxed
+        if (errCount >= maxErr) {//Error count maxed
             String err =
                     String.format(
                             "Macro %s(Used by %s) was Canceled due to too many errors. Errors thrown:\n%s",
@@ -177,16 +219,24 @@ public class Runner implements MacroRunner, Consumer<Task>  {
         return System.currentTimeMillis() - lastTime;
     }
 
-    public int getCurrentLine() {
+    public String getCurrentLine() {
+        return actions.get(cmdNext);
+    }
+
+    public int getCurrentLineNumber() {
         return cmdNext;
     }
+
+    public void setNextLineNumber(int lineNumber) {
+        cmdNext = lineNumber-1;
+    }//todo - Not the safest way
 
     public int getTickRunCount() {
         return cmdCount;
     }
 
     public int getErrorCount() {
-        return excCount;
+        return errCount;
     }
 
     public int getTickRunLimit() {
@@ -233,6 +283,13 @@ public class Runner implements MacroRunner, Consumer<Task>  {
         return excHandler;
     }
 
-    public static void main(String[] args) {
+    public void setWaitingTicks(long ticks) {
+        this.waitingTicks = ticks;
     }
+
+    public long getWaitingTicks() {
+        return waitingTicks;
+    }
+
+    public static void main(String[] args) {}
 }

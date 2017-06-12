@@ -19,7 +19,6 @@ import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameConstructionEvent;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.world.SaveWorldEvent;
 import org.spongepowered.api.plugin.Plugin;
@@ -33,7 +32,7 @@ import java.util.Arrays;
 /**
  * Created by Gamecube762 on 10/5/2016.
  */
-@Plugin(id = "macros", name = "Macros", version = "1.0-alpha-2", authors = {"Gamecube762"}, description = "Create and use macros to simplify your daily needs.")
+@Plugin(id = "macros", name = "Macros", version = "1.0-alpha-4", authors = {"Gamecube762"}, description = "Create and use macros to simplify your daily needs.")
 public class SpongeLoader {
 
     @Inject
@@ -107,6 +106,7 @@ public class SpongeLoader {
         try {mm.loadMacros();}
         catch (IOException e) {e.printStackTrace();}
 
+        //todo cancel <macro|all>
         CommandSpec macro = CommandSpec.builder()//todo tab-complete for names
                 .permission("macro.command")
                 .description(Text.of("Macro manager command."))
@@ -134,9 +134,6 @@ public class SpongeLoader {
         Sponge.getCommandManager().register(this, cmd_QuickMacro.spec, "quickmacro");
         Sponge.getEventManager().registerListeners(this, new ChatHandler(this));
     }
-
-    @Listener
-    public void preInit(GameInitializationEvent event) {}
 
     @Listener
     public void onWorldSave(SaveWorldEvent e) {//auto save

@@ -4,6 +4,9 @@ import com.github.gamecube762.macro.services.MacroManger;
 import com.github.gamecube762.macro.util.Macro;
 import com.github.gamecube762.macro.util.MacroUtils;
 import com.github.gamecube762.macro.util.MultipleObjectExceptionHandler;
+import com.github.gamecube762.macro.util.SpecialUtils;
+import com.github.gamecube762.macro.util.actionCommands.ActionCommand;
+import com.github.gamecube762.macro.util.actionCommands.commands.*;
 import com.github.gamecube762.macro.util.commands.MacroCommands;
 import com.google.common.reflect.TypeToken;
 import com.sun.istack.internal.Nullable;
@@ -12,9 +15,9 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import ninja.leaping.configurate.objectmapping.ObjectMappingException;
+import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
-import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 
@@ -36,6 +39,7 @@ public class MMService implements MacroManger {
     private SpongeLoader plugin;
 
     private Set<Macro> storage = new HashSet<>();
+    private HashMap<ActionCommand, String[]> actionCommands = new HashMap<>();
 
     protected MMService(SpongeLoader plugin) {
         if (this.plugin != null)
@@ -43,10 +47,28 @@ public class MMService implements MacroManger {
 
         this.plugin = plugin;
         me = this;
+        registerDefaultActionCommands();
+    }
+
+    private void registerDefaultActionCommands() {
+        registerActionCommand(new Done(), "done");
+        registerActionCommand(new Echo(), "echo");
+        registerActionCommand(new Goto(), "goto");
+        registerActionCommand(new LogD(), "logd");
+        registerActionCommand(new LogE(), "loge");
+        registerActionCommand(new LogI(), "logi");
+        registerActionCommand(new LogW(), "logw");
+        registerActionCommand(new Perm(), "perm");
+        registerActionCommand(new Sudo(), "sudo");
+        registerActionCommand(new Wait(), "wait");
     }
 
     public Set<Macro> getStorage() {
         return storage;
+    }
+
+    public Logger getLogger() {
+        return plugin.logger;
     }
 
     public void registerMacro(Macro macro) {
@@ -57,9 +79,42 @@ public class MMService implements MacroManger {
         storage.remove(macro);
     }
 
+    public void registerActionCommand(ActionCommand ac, String... aliases) {
+        for (String a : aliases)
+            if (a.isEmpty())
+                throw new IllegalArgumentException("Empty String");
+
+        for (String[] v : actionCommands.values())
+            for (String s : v)
+                for (String a : aliases)
+                    if (s.equalsIgnoreCase(a))
+                        throw new IllegalArgumentException("Alias is already in use");
+
+        actionCommands.put(ac, Objects.requireNonNull(aliases, "Alias(es) is required."));
+    }
+
+    public void unregisterActionCommand(String alias) {
+        for (Map.Entry<ActionCommand, String[]> entry : actionCommands.entrySet())
+            for (String a : entry.getValue())
+                if (a.equalsIgnoreCase(alias))
+                    actionCommands.remove(entry.getKey());
+    }
+
+    public HashMap<ActionCommand, String[]> getActionCommands() {
+        return actionCommands;
+    }
+
+    public Optional<ActionCommand> getActionCommand(String alias) {
+        for (Map.Entry<ActionCommand, String[]> entry : actionCommands.entrySet())
+            for (String a : entry.getValue())
+                if (a.equalsIgnoreCase(alias))
+                    return Optional.of(entry.getKey());
+        return Optional.empty();
+    }
+
     /**
      *
-     * does not apply new macros
+     * todo Check: "does not apply new macros"
      *
      */
     public List<Macro> loadMacros() throws IOException {
@@ -193,22 +248,19 @@ public class MMService implements MacroManger {
 
     public void importMacro(Path path) {
         if (!Files.exists(path))
-            throw new IllegalArgumentException("Path does not exist.");
+            throw new IllegalArgumentException("Path does not exist.");//todo
 
 
 
 
     }
 
-    public Collection<Macro> getAccessableMacros(Player p) {
-        return storage.stream().filter(
-                m -> m.isPublic()
-                        || m.getAuthorUniqueId() == p.getUniqueId()
-                        || p.hasPermission("macro.other." + m.getID())//todo
-        ).collect(Collectors.toList());
+    public Collection<Macro> getAccessableMacros(CommandSource source) {
+        return storage.stream().filter(m -> MacroUtils.canUse(source, m)).collect(Collectors.toList());
     }
 
-    public Optional<Macro> getMacro(UUID uuid, String name) {//todo update to MacroAuthor
+    public Optional<Macro> getMacro(UUID uuid, String name) {//todo MacroID.class
+        //todo update to MacroAuthor
         //todo getAccessableMacros()
         return getMacro(String.format("%s.%s", uuid, name));
     }
@@ -258,11 +310,11 @@ public class MMService implements MacroManger {
         Consumer<Task> r = new Runner(plugin, macro, source, args);
         Task t = Sponge.getScheduler().createTaskBuilder()
                 .name(String.format("MacroRunner:%s:%s.%s", source.getName(), macro.getAuthorName(), source.getName()))
-                .intervalTicks(1)
+                .intervalTicks(1)//todo config
                 .execute(r)
                 .submit(plugin);
 
-        source.sendMessage(Text.of(String.format("Running macro: %s%s", macro.getPublicName(), args.isEmpty() ? "" : args.stream().collect(Collectors.joining(" ", ", ", "")))));
+        source.sendMessage(Text.of(String.format("Running macro: %s%s", macro.getPublicName(), args.isEmpty() ? "" : SpecialUtils.toString(args, " ", " with: ", ""))));//
 
         if (plugin.configRoot.getNode("startMacrosOnTheSameTick").getBoolean(true)) //if run immediately
             r.accept(t);//force run

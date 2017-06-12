@@ -18,27 +18,42 @@ import java.util.stream.Collectors;
 public class Macro {
 
     /**
+     * Normal Argument - {1} or {1orCheeseCake}
+     * Remainder Argument - {==} or {=1=}
+     * Special Argument - {Text}
+     *
      * REGEX_Arguments:
      *  Used for finding Argument Placeholders
      *  Groups:
-     *   1: key to Normal Arguments
-     *   2: remainder of Normal Argument "orVALUE"
-     *   3: value to Normal Argument
-     *   4: key to Remainder Argument
-     *   5: key to Special Argument
+     *   1: Normal Argument
+     *   2: key to Normal Arguments
+     *   3: remainder of Normal Argument "orVALUE"
+     *   4: value to Normal Argument
+     *
+     *   5: Remainder Argument
+     *   6: key to Remainder Argument
+     *
+     *   7: Special Argument
+     *   8: key to Special Argument
      *
      * REGEX_ID:
      *  Used for MacroIDs
      *  Groups:
-     *   1: UUID or Username
-     *   2: Macroname
+     *
+     *   1: UUID or Username with a Trailing . - Used for optional capture of Group 2
+     *   2: UUID or Username
+     *   3: Macroname
      *
      *  REGEX_Name:
      *   Used for MacroNames and MCUsernames
+     *
+     *  REGEX_ActionCommand:
+     *   Used for capturing ActionCommands
      */
-    public static final Pattern REGEX_Arguments = Pattern.compile("\\{(\\d+)(or([a-zA-Z0-9]*))?}|\\{=(\\d+)?=}|(?i)(\\{(user|userId|macroName|macroID)})");
-    public static final Pattern REGEX_ID = Pattern.compile("([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|[a-zA-Z0-9_]{3,16})\\.([a-zA-Z0-9_]{3,16}|[a-zA-Z0-9_]{3,16})");
-    public static final Pattern REGEX_Name = Pattern.compile("[a-zA-Z0-9_]{3,16}");
+    public static final Pattern REGEX_Arguments = Pattern.compile("(\\{(\\d+)(or(\\w*))?})|(\\{=(\\d+)?=})|(\\{(\\w+)})");
+    public static final Pattern REGEX_ID = Pattern.compile("(([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}|\\w{3,16})\\.)?(\\w{3,16})");
+    public static final Pattern REGEX_Name = Pattern.compile("\\w{3,16}");
+    public static final Pattern REGEX_ActionCommand = Pattern.compile("\\.\\w*:");
 
     public static final TypeToken<Macro> Token_Macro = TypeToken.of(Macro.class);
     public static final TypeToken<ArrayList<Macro>> Token_MacroList = new TypeToken<ArrayList<Macro>>() {};

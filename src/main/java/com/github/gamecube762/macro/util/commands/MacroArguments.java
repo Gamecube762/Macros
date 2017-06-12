@@ -12,6 +12,7 @@ import org.spongepowered.api.text.Text;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Gamecube762 on 10/6/2016.
@@ -120,7 +121,13 @@ public class MacroArguments {
 
         @Override
         public List<String> complete(CommandSource source, CommandArgs args, CommandContext context) {
-            return Collections.emptyList();
+            String filter = args.nextIfPresent().orElse("");
+
+            return MacroUtils.getMacroManager().get()
+                    .getAccessableMacros(source).stream()
+                    .map(m -> MacroUtils.isAuthor(source, m) ? m.getName() : m.getPublicName())
+                    .filter(s -> s.startsWith(filter))
+                    .collect(Collectors.toList());
         }
 
         @Override
