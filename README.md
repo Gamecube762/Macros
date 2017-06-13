@@ -95,7 +95,7 @@ LogI | .logi: \<Message> | Log a [Info] message to console
 LogW | .logw: \<Message> | Log a [WARN] message to console
 Perm | .perm: \<PermissionNode> | Run a permission check on the User. Will end macro if check failed.
 Sudo | .sudo: \<Command> | DANGEROUS! Run command as Console. Requires user to have permmision `macro.use.other.sudo.<UUID>.<MacroName>` to use sudo on that macro.
-Wait | .
+Wait | .wait: \<Number> [Time] | Wait X amount of time before running the next command. Times accepted: Ticks, Seconds, Minutes, Hours
 
 Installing
 ===
